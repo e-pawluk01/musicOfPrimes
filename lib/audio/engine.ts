@@ -1,10 +1,6 @@
-const MAX_VOICES = 24;
+import { getTimbre, type TimbreId, type Voice } from './timbres';
 
-interface Voice {
-  gain: GainNode;
-  osc: OscillatorNode;
-  end: number;
-}
+const MAX_VOICES = 24;
 
 /** A soft room echo made from fading noise, so no sound file is needed. */
 function makeImpulse(ctx: AudioContext, seconds: number): AudioBuffer {
@@ -27,6 +23,8 @@ export class AudioEngine {
   private readonly mix: GainNode;
   private bus: GainNode;
   private voices: Voice[] = [];
+  /** Which synth sound new notes use. */
+  timbre: TimbreId = 'sine';
 
   constructor() {
     const ctx = new AudioContext({ latencyHint: 'interactive' });
@@ -82,38 +80,24 @@ export class AudioEngine {
   }
 
   /**
-   * Plays one soft sine note.
+   * Plays one note with the current sound.
+   * @param velocity loudness, 0 to 1
    * @param decay how quickly the note dies away, in seconds
    */
   playNote(freq: number, time: number, velocity: number, decay: number): void {
     const ctx = this.ctx;
-    const attack = 0.012;
-    const end = time + attack + decay * 6;
 
     // Never let too many notes sound at once: fade out the oldest first.
     this.voices = this.voices.filter((v) => v.end > ctx.currentTime);
     while (this.voices.length >= MAX_VOICES) {
       const v = this.voices.shift()!;
-      v.gain.gain.cancelScheduledValues(time);
-      v.gain.gain.setTargetAtTime(0, time, 0.012);
-      v.osc.stop(time + 0.1);
+      v.out.gain.cancelScheduledValues(time);
+      v.out.gain.setTargetAtTime(0, time, 0.012);
+      v.stop(time + 0.1);
     }
 
     // Higher notes sound louder to the ear, so turn them down a little.
     const peak = 0.22 * velocity * Math.min(1, Math.pow(330 / freq, 0.35));
-
-    const osc = ctx.createOscillator();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0, time);
-    gain.gain.linearRampToValueAtTime(peak, time + attack);
-    gain.gain.setTargetAtTime(0, time + attack, decay);
-    osc.connect(gain).connect(this.bus);
-    osc.start(time);
-    osc.stop(end);
-    osc.onended = () => gain.disconnect();
-
-    this.voices.push({ gain, osc, end });
+    this.voices.push(getTimbre(this.timbre)(ctx, this.bus, freq, time, peak, decay));
   }
 }

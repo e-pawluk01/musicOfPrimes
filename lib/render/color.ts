@@ -44,13 +44,22 @@ export interface Palette {
   hue: (t: number) => number;
 }
 
-export const SPECTRUM: Palette = {
-  id: 'spectrum',
-  name: 'Spectrum',
-  lightness: 0.8,
-  chroma: 0.125,
-  hue: (t) => 25 + t * 360,
-};
+/**
+ * Each palette runs from the start of the circle to the end, like the notes do.
+ * Lightness and colour strength stay fixed, so no hue shouts over another.
+ */
+export const PALETTES: Palette[] = [
+  { id: 'spectrum', name: 'Spectrum', lightness: 0.8, chroma: 0.125, hue: (t) => 25 + t * 360 },
+  { id: 'aurora', name: 'Aurora', lightness: 0.82, chroma: 0.13, hue: (t) => 135 + t * 190 },
+  { id: 'ember', name: 'Ember', lightness: 0.78, chroma: 0.14, hue: (t) => 5 + t * 95 },
+  { id: 'ice', name: 'Ice', lightness: 0.86, chroma: 0.085, hue: (t) => 185 + t * 115 },
+];
+
+export const SPECTRUM: Palette = PALETTES[0];
+
+export function getPalette(id: string): Palette {
+  return PALETTES.find((p) => p.id === id) ?? SPECTRUM;
+}
 
 export const LUT_SIZE = 256;
 
