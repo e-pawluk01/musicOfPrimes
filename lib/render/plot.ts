@@ -10,7 +10,7 @@ const REBAKE_AT = 0.92;
 const GLOW_MS = 700;
 const ZOOM_EASE_MS = 1100;
 const DOT_MAX = 3.2;
-const DOT_MIN = 0.9;
+const DOT_MIN = 0.45;
 
 export class Plot {
   private readonly canvas: HTMLCanvasElement;
@@ -155,7 +155,7 @@ export class Plot {
 
   /** Dots shrink gently as the view zooms out, down to a minimum size. */
   private dotSize(viewR: number): number {
-    const size = DOT_MAX * Math.pow(this.initR / viewR, 0.2);
+    const size = DOT_MAX * Math.pow(this.initR / viewR, 0.25);
     return Math.min(DOT_MAX, Math.max(DOT_MIN, size));
   }
 

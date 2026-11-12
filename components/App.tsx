@@ -107,7 +107,7 @@ export function App() {
         </button>
       </div>
 
-      <div className="bar" role="toolbar" aria-label="Playback">
+      <div className={`bar${idle ? ' is-hidden' : ''}`} role="toolbar" aria-label="Playback" inert={idle}>
         <button className="icon-button" onClick={toggle} aria-label={playing ? 'Pause' : 'Play'}>
           {playing ? <PauseIcon /> : <PlayIcon />}
         </button>
